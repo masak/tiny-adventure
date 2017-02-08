@@ -30,9 +30,11 @@ Here's an example session:
     You unlock the door with the key.
     You open the door. There's now a new exit to the south.
 
-    > douth
+    > look
 
-    Unknown command; sorry.
+    This room feels very welcoming, with warm colors and a friendly atmosphere.
+    Cool air wafts in the open door to the south. It beckons for you walk through it.
+    Exits are east, and south.
 
     > south
 

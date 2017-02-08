@@ -11,20 +11,29 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 
 class GameState {
-    String room;
+    String playerLocation;
     Set<String> seen = new HashSet<>();
     boolean holdingKey = false;
 }
 
 class Command implements Predicate<GameState>, Consumer<GameState> {
-    String input;
+    String primaryInput;
     Predicate<GameState> condition;
     Consumer<GameState> action;
+    List<String> inputSynonyms;
 
-    Command(String input, Predicate<GameState> condition, Consumer<GameState> action) {
-        this.input = input;
+    Command(String primaryInput, Predicate<GameState> condition, Consumer<GameState> action, String... inputSynonyms) {
+        this.primaryInput = primaryInput;
         this.condition = condition;
         this.action = action;
+        this.inputSynonyms = asList(inputSynonyms);
+    }
+
+    public boolean recognizes(String... alternatives) {
+        // Collection.removeAll() returns true if the collection *changed*, which is what we need
+        // for checking if `alternatives` and `inputSynonyms` intersect
+        return asList(alternatives).contains(primaryInput)
+            || new ArrayList<>(asList(alternatives)).removeAll(inputSynonyms);
     }
 
     public boolean test(GameState state) {
@@ -45,78 +54,71 @@ class TinyAdventure {
         description.put("kitchen", "All neat and clean surfaces. Clearly this kitchen is tended by a professional.");
     }
 
-    Predicate<GameState> everywhere = (state) -> true;
-    Predicate<GameState> inHallway = (state) -> state.room.equals("hallway");
-    Predicate<GameState> inKitchen = (state) -> state.room.equals("kitchen");
+    Predicate<GameState> inHallway = (state) -> state.playerLocation.equals("hallway");
+    Predicate<GameState> inKitchen = (state) -> state.playerLocation.equals("kitchen");
     Predicate<GameState> holdingKey = (state) -> state.holdingKey;
 
-    Consumer<GameState> pickUpKey = (state) -> {
-        System.out.println("You pick up the key.");
-        state.holdingKey = true;
-    };
-    Consumer<GameState> winTheGame = (state) -> {
-        System.out.println("You win the game. Thanks for playing!");
-        System.exit(0);
-    };
-    Consumer<GameState> unlockDoor = (state) -> {
-        System.out.println("You unlock the door with the key.");
-        System.out.println("You open the door. There's now a new exit to the south.");
-        description.put("hallway", "This room feels very welcoming, with warm colors and a friendly atmosphere.\n" +
-                                    "There's a big huge open door to the south, that beckons for you walk through it.");
-        getCommands().add(new Command("south", inHallway, winTheGame));
-    };
-    Consumer<GameState> youDoNotHaveTheKey = (state) -> {
-        System.out.println("You do not have the key!");
-    };
-    Consumer<GameState> thereIsNoDoorHere = (state) -> {
-        System.out.println("There is no door here! Well, none that matters, anyway.");
+    String[] openDoorSynonyms = new String[] {
+        "open door",
+        "unlock door",
+        "use key",
+        "use key in door",
+        "use key to unlock door",
+        "use key to open door",
     };
 
     List<Command> commands = new ArrayList<>(asList(new Command[] {
-        new Command("look", everywhere, (state) -> look()),
-        new Command("east", inHallway, (state) -> enter("kitchen")),
-        new Command("west", inKitchen, (state) -> enter("hallway")),
-        new Command("pick up key", inKitchen, pickUpKey),
-        new Command("take key", inKitchen, pickUpKey),
-        new Command("grab key", inKitchen, pickUpKey),
-        new Command("get key", inKitchen, pickUpKey),
-        new Command("open door", inHallway.and(holdingKey), unlockDoor),
-        new Command("unlock door", inHallway.and(holdingKey), unlockDoor),
-        new Command("use key", inHallway.and(holdingKey), unlockDoor),
-        new Command("use key on door", inHallway.and(holdingKey), unlockDoor),
-        new Command("open door", inHallway, youDoNotHaveTheKey),
-        new Command("unlock door", inHallway, youDoNotHaveTheKey),
-        new Command("use key", inHallway, youDoNotHaveTheKey),
-        new Command("use key on door", inHallway, youDoNotHaveTheKey),
-        new Command("open door", inKitchen, thereIsNoDoorHere),
-        new Command("unlock door", inKitchen, thereIsNoDoorHere),
-        new Command("use key", inKitchen, thereIsNoDoorHere),
-        new Command("use key on door", inKitchen, thereIsNoDoorHere),
+        new Command("look", inHallway.or(inKitchen), (state) -> look(), "l"),
+
+        new Command("east", inHallway, ($) -> enter("kitchen"), "e"),
+        new Command("west", inKitchen, ($) -> enter("hallway"), "w"),
+
+        new Command("pick up key", inKitchen, (state) -> {
+            System.out.println("You pick up the key.");
+            state.holdingKey = true;
+        }, "take key", "grab key", "get key"),
+
+        new Command("use key on door", inHallway.and(holdingKey), ($0) -> {
+            System.out.println("You unlock the door with the key.");
+            System.out.println("You open the door. There's now a new exit to the south.");
+
+            description.put("hallway", "This room feels very welcoming, with warm colors and a friendly atmosphere.\n" +
+                                    "Cool air wafts in the open door to the south. It beckons for you walk through it.");
+
+            addCommand(new Command("south", inHallway, ($1) -> {
+                System.out.println("You win the game. Thanks for playing!");
+                System.exit(0);
+            }, "s"));
+        }, openDoorSynonyms),
+
+        new Command("use key on door", inHallway, ($) -> {
+            System.out.println("You do not have the key!");
+        }, openDoorSynonyms),
+
+        new Command("use key on door", inKitchen, ($) -> {
+            System.out.println("There is no door here! Well, none that matters, anyway.");
+        }, openDoorSynonyms),
     }));
 
-    List<Command> getCommands() {
-        return commands;
+    private void addCommand(Command command) {
+        commands.add(command);
     }
 
-    static Command UNKNOWN_COMMAND = new Command(null, null, (state) -> {
-        System.out.println("Unknown command; sorry.");
-    });
-
     void enter(String room) {
-        state.room = room;
-        System.out.println("## " + state.room);
+        state.playerLocation = room;
+        System.out.println("## " + room);
 
-        if (!state.seen.contains(state.room)) {
+        if (!state.seen.contains(room)) {
             System.out.println();
             look();
-            state.seen.add(state.room);
+            state.seen.add(room);
         }
     }
 
     void look() {
-        System.out.println(description.get(state.room));
+        System.out.println(description.get(state.playerLocation));
 
-        if (state.room.equals("kitchen") && !state.holdingKey) {
+        if (state.playerLocation.equals("kitchen") && !state.holdingKey) {
             System.out.println();
             System.out.println("There is a key here.");
         }
@@ -126,12 +128,9 @@ class TinyAdventure {
 
     String exits() {
         return commands.stream()
-            .filter((command) -> command.input.equals("east")
-                        || command.input.equals("west")
-                        || command.input.equals("south"))
-            .filter((command) -> command.test(state))
-            .map((command) -> command.input)
-            .collect(Collectors.joining(", "));
+            .filter((command) -> command.recognizes("east", "west", "south") && command.test(state))
+            .map((command) -> command.primaryInput)
+            .collect(Collectors.joining(", and "));
     }
 
     String prompt() {
@@ -155,9 +154,11 @@ class TinyAdventure {
             }
 
             commands.stream()
-                .filter((command) -> command.input.equals(input))
-                .filter((command) -> command.test(state))
-                .findFirst().orElse(UNKNOWN_COMMAND)
+                .filter((command) -> command.recognizes(input) && command.test(state))
+                .map((command) -> command.action)
+                .findFirst().orElse((state) -> {
+                    System.out.println("Unknown command; sorry.");
+                })
                 .accept(state);
 
             System.out.println();
