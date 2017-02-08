@@ -40,3 +40,20 @@ Here's an example session:
 
     You win the game. Thanks for playing!
 
+## Languages to investigate
+
+Might as well dump this information here, before it gets lost in the Slack backlog.
+
+* Lisp
+* Forth
+* Logo
+* APL (J? K?)
+* Smalltalk
+* Eiffel
+* Prolog
+* Brainfuck
+* Go
+* Scheme
+* Haskell
+* C
+* Rust
