@@ -123,14 +123,11 @@ class TinyAdventure {
             System.out.println("There is a key here.");
         }
 
-        System.out.println("Exits are " + exits() + ".");
-    }
-
-    String exits() {
-        return commands.stream()
+        String exits = commands.stream()
             .filter((command) -> command.recognizes("east", "west", "south") && command.test(state))
             .map((command) -> command.primaryInput)
             .collect(Collectors.joining(", and "));
+        System.out.println("Exits are " + exits + ".");
     }
 
     String prompt() {
