@@ -100,6 +100,8 @@ class TinyAdventure {
         }, openDoorSynonyms),
     }));
 
+    Command QUIT_COMMAND = new Command("quit", null, null, "exit", "q");
+
     private void addCommand(Command command) {
         commands.add(command);
     }
@@ -146,7 +148,7 @@ class TinyAdventure {
 
         while (true) {
             String input = prompt();
-            if (input == null || input.equals("quit")) {
+            if (input == null || QUIT_COMMAND.recognizes(input)) {
                 break;
             }
 
