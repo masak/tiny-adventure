@@ -60,6 +60,12 @@ class TinyAdventure {
     Predicate<GameState> inKitchen = (state) -> state.playerLocation.equals("kitchen");
     Predicate<GameState> holdingKey = (state) -> state.holdingKey;
 
+    String[] pickUpKeySynonyms = new String[] {
+        "take key",
+        "grab key",
+        "get key",
+    };
+
     String[] openDoorSynonyms = new String[] {
         "open door",
         "unlock door",
@@ -75,10 +81,14 @@ class TinyAdventure {
         new Command("east", inHallway, ($) -> enter("kitchen"), "e"),
         new Command("west", inKitchen, ($) -> enter("hallway"), "w"),
 
-        new Command("pick up key", inKitchen, (state) -> {
+        new Command("pick up key", inKitchen.and(holdingKey.negate()), (state) -> {
             System.out.println("You pick up the key.");
             state.holdingKey = true;
-        }, "take key", "grab key", "get key"),
+        }, pickUpKeySynonyms),
+
+        new Command("pick up key", holdingKey, (state) -> {
+            System.out.println("You already have the key!");
+        }, pickUpKeySynonyms),
 
         new Command("use key on door", inHallway.and(holdingKey), ($0) -> {
             System.out.println("You unlock the door with the key.");
