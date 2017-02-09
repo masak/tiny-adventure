@@ -29,11 +29,13 @@ class Command implements Predicate<GameState>, Consumer<GameState> {
         this.inputSynonyms = asList(inputSynonyms);
     }
 
-    public boolean recognizes(String... alternatives) {
-        // Collection.removeAll() returns true if the collection *changed*, which is what we need
-        // for checking if `alternatives` and `inputSynonyms` intersect
+    private static <T> boolean intersect(List<T> list1, List<T> list2) {
+        return new ArrayList<>(list1).removeAll(list2);
+    }
+
+    boolean recognizes(String... alternatives) {
         return asList(alternatives).contains(primaryInput)
-            || new ArrayList<>(asList(alternatives)).removeAll(inputSynonyms);
+            || intersect(asList(alternatives), inputSynonyms);
     }
 
     public boolean test(GameState state) {
