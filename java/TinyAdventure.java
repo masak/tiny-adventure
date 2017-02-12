@@ -103,7 +103,7 @@ class TinyAdventure {
             }, "s"));
         }, openDoorSynonyms),
 
-        new Command("use key on door", inHallway, ($) -> {
+        new Command("use key on door", holdingKey.negate(), ($) -> {
             System.out.println("You do not have the key!");
         }, openDoorSynonyms),
     }));
