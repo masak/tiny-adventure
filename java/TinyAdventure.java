@@ -86,7 +86,7 @@ class TinyAdventure {
             state.holdingKey = true;
         }, pickUpKeySynonyms),
 
-        new Command("pick up key", holdingKey, (state) -> {
+        new Command("pick up key", holdingKey, ($) -> {
             System.out.println("You already have the key!");
         }, pickUpKeySynonyms),
 
@@ -105,10 +105,6 @@ class TinyAdventure {
 
         new Command("use key on door", inHallway, ($) -> {
             System.out.println("You do not have the key!");
-        }, openDoorSynonyms),
-
-        new Command("use key on door", inKitchen, ($) -> {
-            System.out.println("There is no door here! Well, none that matters, anyway.");
         }, openDoorSynonyms),
     }));
 
@@ -167,8 +163,12 @@ class TinyAdventure {
             commands.stream()
                 .filter((command) -> command.recognizes(input) && command.test(state))
                 .map((command) -> command.action)
-                .findFirst().orElse((state) -> {
-                    System.out.println("Unknown command; sorry.");
+                .findFirst().orElse(($) -> {
+                    boolean commandValidButNotHere = commands.stream()
+                        .anyMatch((command) -> command.recognizes(input));
+                    System.out.println(commandValidButNotHere
+                        ? "You can't do that here!"
+                        : "Unknown command; sorry.");
                 })
                 .accept(state);
 
