@@ -1,0 +1,142 @@
+#! /usr/local/bin/perl6
+
+class GameState {
+    has Str $.player-location is rw;
+    has %.seen;
+    has Bool $.holding-key is rw;
+}
+
+class Command {
+    has Str $.primary-input;
+    has &.condition;
+    has &.action;
+    has @.input-synonyms;
+
+    method recognizes(*@alternatives) {
+        any(@alternatives) eq any($.primary-input, |@.input-synonyms);
+    }
+}
+
+sub command($primary-input, &condition, &action, *@input-synonyms) {
+    Command.new(:$primary-input, :&condition, :&action, :@input-synonyms);
+}
+
+my $state = GameState.new;
+
+my %description =
+    hallway => q:to "---",
+        This room feels very welcoming, with warm colors and a friendly atmosphere.
+        There's a big huge door to the south, that beckons for you to open it.
+        ---
+    kitchen => q:to "---",
+        All neat and clean surfaces. Clearly this kitchen is tended by a professional.
+        ---
+;
+
+my &in-hallway = { $^state.player-location eq "hallway" };
+my &in-kitchen = { $^state.player-location eq "kitchen" };
+my &holding-key = { $^state.holding-key };
+
+my @pick-up-key-synonyms = «
+    "take key"
+    "grab key"
+    "get key"
+»;
+
+my @open-door-synonyms = «
+    "open door"
+    "unlock door"
+    "use key"
+    "use key in door"
+    "use key to unlock door"
+    "use key to open door"
+»;
+
+my @commands = 
+    command("look", { True }, -> $ { look }, "l"),
+
+    command("east", &in-hallway, -> $ { enter("kitchen") }, "e"),
+    command("west", &in-kitchen, -> $ { enter("hallway") }, "w"),
+
+    command("pick up key", -> $state { &in-kitchen($state) && !&holding-key($state) }, -> $state {
+        say "You pick up the key.";
+        $state.holding-key = True;
+    }, @pick-up-key-synonyms),
+
+    command("pick up key", &holding-key, -> $ {
+        say "You already have the key!";
+    }, @pick-up-key-synonyms),
+
+    command("use key on door", -> $state { &in-hallway && &holding-key }, -> $ {
+        say "You unlock the door with the key.";
+        say "You open the door. There's now a new exit to the south.";
+
+        %description<hallway> = q:to "---";
+            This room feels very welcoming, with warm colors and a friendly atmosphere.
+            Cool air wafts in the open door to the south. It beckons for you walk through it.
+            ---
+
+        @commands.push(command("south", &in-hallway, -> $ {
+            say "You win the game. Thanks for playing!";
+            exit 0;
+        }, "s"));
+    }, @open-door-synonyms),
+
+    command("use key on door", -> $state { !&holding-key($state) }, -> $ {
+        say "You do not have the key!";
+    }, @open-door-synonyms),
+;
+
+constant QUIT_COMMAND = command("quit", &, &, "exit", "q");
+
+sub enter(Str $room) {
+    $state.player-location = $room;
+    say "## $room";
+
+    if !$state.seen{$room}++ {
+        say "";
+        look();
+    }
+}
+
+sub look() {
+    say %description{$state.player-location};
+
+    if $state.player-location eq "kitchen" && !$state.holding-key {
+        say "There is a key here.";
+    }
+
+    my $exits = @commands\
+        .grep({ $^command.recognizes("east", "west", "south") && $command.condition()($state) })\
+        .map(*.primary-input)\
+        .join(", and");
+
+    say "Exits are $exits.";
+}
+
+sub MAIN() {
+    enter("hallway");
+    say "";
+
+    loop {
+        my $input = prompt("> ");
+        say "";
+
+        last unless $input.defined;
+        last if QUIT_COMMAND.recognizes($input);
+
+        if @commands.first({ $^command.recognizes($input) && $command.condition()($state) }) -> $command {
+            $command.action()($state);
+        }
+        elsif @commands.grep({ $^command.recognizes($input) }) {
+            say "You can't do that here!";
+        }
+        else {
+            say "Unknown command; sorry.";
+        }
+
+        say "";
+    }
+
+    say "Thanks for playing. Bye!";
+}
