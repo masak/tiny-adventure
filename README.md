@@ -72,6 +72,13 @@ Might as well dump this information here, before it gets lost in the Slack backl
     * Because of its "object purity".
     * Because nothing is fixed and everything is late-bound.
     * Because of the connection to children learning programming.
+* SQL (1974)
+    * Because it's the only fifth-generation language on the list (along with Prolog)
+    * Because it has things to teach us about declarative syntax and "do what I mean"
+    * Because relational algebra is interesting
+    * Because the ways in which SQL isn't ideal (but still won big) are interesting
+    * Because SQL's `NULL` and three-value logic are "interesting" and slightly controversial (but much used)
+    * Because the transactional/ACID requirements on databases are interesting
 * C++ (1983)
     * Because of the completely different take on OOP compared to Smalltalk.
     * Because it's still to this day in some sense relevant.
