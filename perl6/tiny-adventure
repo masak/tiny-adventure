@@ -52,13 +52,21 @@ my @open-door-synonyms = «
     "use key to open door"
 »;
 
+multi infix:<?&>(&l, &r) {
+    -> $state { &l($state) && &r($state) };
+}
+
+multi prefix:<!>(&fn) {
+    -> $state { !&fn($state) };
+}
+
 my @commands = 
     command("look", { True }, -> $ { look }, "l"),
 
     command("east", &in-hallway, -> $ { enter("kitchen") }, "e"),
     command("west", &in-kitchen, -> $ { enter("hallway") }, "w"),
 
-    command("pick up key", -> $state { &in-kitchen($state) && !&holding-key($state) }, -> $state {
+    command("pick up key", &in-kitchen ?& !&holding-key, -> $state {
         say "You pick up the key.";
         $state.holding-key = True;
     }, @pick-up-key-synonyms),
@@ -67,7 +75,7 @@ my @commands =
         say "You already have the key!";
     }, @pick-up-key-synonyms),
 
-    command("use key on door", -> $state { &in-hallway && &holding-key }, -> $ {
+    command("use key on door", &in-hallway ?& &holding-key, -> $ {
         say "You unlock the door with the key.";
         say "You open the door. There's now a new exit to the south.";
 
@@ -82,7 +90,7 @@ my @commands =
         }, "s"));
     }, @open-door-synonyms),
 
-    command("use key on door", -> $state { !&holding-key($state) }, -> $ {
+    command("use key on door", !&holding-key, -> $ {
         say "You do not have the key!";
     }, @open-door-synonyms),
 ;
