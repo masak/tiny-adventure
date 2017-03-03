@@ -83,6 +83,7 @@ Might as well dump this information here, before it gets lost in the Slack backl
     * Because of the completely different take on OOP compared to Smalltalk.
     * Because it's still to this day in some sense relevant.
     * Because it combines OOP and manual memory management.
+    * Because this is as good place a any to talk about vtables.
 * Eiffel (1986)
     * Because of its interesting stance on DBC and invariants.
 * Haskell (1990)
