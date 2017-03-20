@@ -91,6 +91,8 @@ Might as well dump this information here, before it gets lost in the Slack backl
 * Brainfuck (1993)
     * Because it shows it doesn't take a lot for a language to be Turing complete.
     * Because it shows that built-in higher-level abstractions matter.
+* D (2001)
+    * Because of the interesting perspectives it gives on C and C++
 * Go (2009)
     * Because it highlights what a "modern C" could look like.
     * Because it favors compilation speed over a lot of other concerns.
