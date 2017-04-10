@@ -86,6 +86,8 @@ Might as well dump this information here, before it gets lost in the Slack backl
     * Because this is as good place a any to talk about vtables.
 * Eiffel (1986)
     * Because of its interesting stance on DBC and invariants.
+* Erlang (1986)
+    * Because of its approach to distributed programming.
 * Haskell (1990)
     * Because it is a good case of a lazy, functional language with type inference.
 * Brainfuck (1993)
