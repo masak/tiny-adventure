@@ -67,6 +67,7 @@ Might as well dump this information here, before it gets lost in the Slack backl
     * Because it's basically a universal assembly language for the von Neumann architecture.
 * Prolog (1972)
     * Because of its logic programming paradigm.
+    * Because of its quite different execution strategy, involving search with backtracking.
 * Smalltalk (1972)
     * Because of the connection to the birth of OOP.
     * Because of its "object purity".
