@@ -65,6 +65,7 @@ Might as well dump this information here, before it gets lost in the Slack backl
 * C (1972)
     * Because it makes you think about memory management.
     * Because it's basically a universal assembly language for the von Neumann architecture.
+    * Because you can talk about what a linker is.
 * Prolog (1972)
     * Because of its logic programming paradigm.
     * Because of its quite different execution strategy, involving search with backtracking.
